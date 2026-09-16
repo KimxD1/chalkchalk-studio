@@ -1,0 +1,15 @@
+{
+  "name": "chalkchalk-studio-server",
+  "version": "1.0.0",
+  "description": "찰칵찰칵 사진관 - 촬영+결제 통합 웹페이지 서버",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
