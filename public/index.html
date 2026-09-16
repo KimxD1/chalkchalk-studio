@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>찰칵찰칵 사진관</title>
+<link rel="stylesheet" href="main.css" />
+</head>
+<body>
+  <div class="brand">찰칵찰칵 사진관</div>
+
+  <!-- 1. 시작 화면 -->
+  <section id="screen-start" class="stage">
+    <h1 class="headline">오늘은 어떤 이야기 속으로<br/>떠나볼까요?</h1>
+    <p class="subline">동화책 같은 배경을 고르고, 그 속에서 사진을 찍어드려요.</p>
+    <button class="btn btn-primary" id="btn-start">촬영 시작하기</button>
+  </section>
+
+  <!-- 2. 배경 프리셋 선택 -->
+  <section id="screen-background" class="stage hidden">
+    <button class="btn-back" id="btn-back-to-start">← 처음으로</button>
+    <h2 class="headline" style="font-size:26px;">어떤 배경으로 찍을까요?</h2>
+    <div class="preset-grid" id="preset-grid"></div>
+    <button class="btn btn-primary" id="btn-confirm-bg" disabled>이 배경으로 촬영하기</button>
+  </section>
+
+  <!-- 3. 실시간 합성 촬영 -->
+  <section id="screen-capture" class="stage hidden">
+    <button class="btn-back" id="btn-change-bg">← 배경 다시 고르기</button>
+    <div class="camera-wrap">
+      <video id="webcam" autoplay playsinline muted></video>
+      <canvas id="composite"></canvas>
+    </div>
+    <div class="shutter" id="btn-shutter" title="촬영하기"></div>
+  </section>
+
+  <!-- 4. 결제 (같은 화면에서 바로 진행) -->
+  <section id="screen-payment" class="stage pay-stage hidden">
+    <button class="btn-back" id="btn-cancel-payment">← 취소</button>
+    <h2 class="headline" style="color:#FFF7E8; font-size:24px;">사진이 완성됐어요!<br/>결제를 진행해 주세요</h2>
+    <div class="nfc-ring" id="nfc-ring">💳</div>
+    <p class="subline" id="payment-status">화면을 한 번 눌러서 카드 태그를 시작하세요</p>
+    <button class="btn btn-primary" id="btn-tap-start">화면 눌러서 결제 시작하기</button>
+    <button class="btn-skip-demo" id="btn-demo-pay">테스트용: 결제 완료 처리 (데모)</button>
+  </section>
+
+  <!-- 5. 완료 -->
+  <section id="screen-done" class="stage hidden">
+    <h2 class="headline" style="font-size:24px;">결제가 완료됐어요 🎉</h2>
+    <img id="result-photo" class="result-photo" alt="완성된 사진" />
+    <div style="display:flex; gap:12px;">
+      <button class="btn btn-primary" id="btn-download">사진 저장하기</button>
+      <button class="btn btn-ghost" id="btn-restart">처음으로</button>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

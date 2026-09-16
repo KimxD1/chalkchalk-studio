@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#FFE1EE"/>
+        <stop offset="100%" stop-color="#FFB6D9"/>
+      </linearGradient>
+    </defs>
+    <rect width="800" height="400" fill="url(#sky)"/>
+    
+      <rect width="800" height="400" fill="#12507A" opacity="0.55"/>
+      <g fill="#FFFFFF" opacity="0.55"><circle cx="90" cy="70" r="10"/><circle cx="240" cy="84" r="13"/><circle cx="410" cy="98" r="16"/><circle cx="560" cy="112" r="19"/><circle cx="690" cy="126" r="22"/></g>
+      <path d="M0 260 Q 200 220 400 260 T 800 250 V400 H0 Z" fill="#0E3B57"/>
+      <g fill="#0A2C42"><path d="M130 400 Q 145 300 130 260 Q 115 300 130 400 Z"/><path d="M320 400 Q 335 300 320 260 Q 305 300 320 400 Z"/><path d="M540 400 Q 555 300 540 260 Q 525 300 540 400 Z"/><path d="M690 400 Q 705 300 690 260 Q 675 300 690 400 Z"/></g>
+      <g fill="#FFFFFF" opacity="0.7"><ellipse cx="150" cy="340" rx="22" ry="12"/><ellipse cx="380" cy="320" rx="22" ry="12"/><ellipse cx="600" cy="300" rx="22" ry="12"/></g>
+    
+    
+  </svg>
