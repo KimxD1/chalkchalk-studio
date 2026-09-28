@@ -28,6 +28,14 @@ const screens = {
 function showScreen(name) {
   Object.values(screens).forEach((el) => el.classList.add("hidden"));
   screens[name].classList.remove("hidden");
+  // CSS가 화면별 테마(예: 결제 화면의 어두운 배경)를 적용할 수 있도록 현재 화면 이름을 알려줍니다.
+  document.body.dataset.screen = name;
+  window.scrollTo(0, 0);
+  // 촬영 화면을 벗어나면 진행 중이던 카운트다운과 열려 있던 타이머 패널을 정리합니다.
+  if (name !== "capture") {
+    cancelCountdown();
+    setTimerPanel(false);
+  }
 }
 
 // ---------------------------------------------------------------
@@ -53,10 +61,19 @@ PRESETS.forEach((preset) => {
 document.getElementById("btn-start").addEventListener("click", () => showScreen("background"));
 document.getElementById("btn-back-to-start").addEventListener("click", () => showScreen("start"));
 
+async function openCapture() {
+  try {
+    await startCamera(selectedBg);
+    showScreen("capture");
+  } catch (err) {
+    console.error(err);
+    alert("카메라를 켜지 못했어요. 카메라 권한을 확인한 뒤 다시 시도해 주세요.");
+  }
+}
+
 document.getElementById("btn-confirm-bg").addEventListener("click", async () => {
   if (!selectedBg) return;
-  await startCamera(selectedBg);
-  showScreen("capture");
+  await openCapture();
 });
 
 document.getElementById("btn-change-bg").addEventListener("click", () => {
@@ -76,6 +93,7 @@ let backgroundImage = null;
 let rafId = null;
 let stream = null;
 let frozenFrame = null;
+let loopGen = 0;   // 카메라를 켤 때마다 올라가는 번호. 예전 루프가 남아 겹치는 걸 막습니다.
 
 async function startCamera(bgUrl) {
   backgroundImage = await loadImage(bgUrl);
@@ -95,20 +113,25 @@ async function startCamera(bgUrl) {
     segmentation.onResults(onSegmentationResult);
   }
 
+  const gen = ++loopGen;
   frozenFrame = null;
-  renderLoop();
+  renderLoop(gen);
 }
 
 function stopCamera() {
+  loopGen++;
   if (rafId) cancelAnimationFrame(rafId);
   if (stream) stream.getTracks().forEach((t) => t.stop());
 }
 
-function renderLoop() {
-  if (frozenFrame) return;
-  segmentation.send({ image: video }).then(() => {
-    rafId = requestAnimationFrame(renderLoop);
-  });
+function renderLoop(gen) {
+  if (gen !== loopGen || frozenFrame) return;
+  segmentation
+    .send({ image: video })
+    .then(() => {
+      if (gen === loopGen) rafId = requestAnimationFrame(() => renderLoop(gen));
+    })
+    .catch(() => {});
 }
 
 function onSegmentationResult(results) {
@@ -160,18 +183,124 @@ function loadImage(src) {
 }
 
 // ---------------------------------------------------------------
+// 타이머 (촬영 버튼을 누른 뒤 N초 카운트다운 → 자동 촬영)
+// - 끔 / 3초 / 5초 / 10초 버튼 + 1초 단위 직접 설정(0~60초)
+// - 설정값은 이 기기에 저장되어 다음 손님에게도 유지됩니다.
+// ---------------------------------------------------------------
+const TIMER_KEY = "chalkchalk_timer_seconds";
+const TIMER_MAX = 60;
+let timerSeconds = loadTimerSeconds();   // 0 = 끔
+let countdownId = null;
+
+const shutterBtn = document.getElementById("btn-shutter");
+const countdownEl = document.getElementById("countdown");
+const timerBtn = document.getElementById("btn-timer");
+const timerPanel = document.getElementById("timer-panel");
+
+function loadTimerSeconds() {
+  try {
+    const v = parseInt(localStorage.getItem(TIMER_KEY), 10);
+    if (Number.isFinite(v) && v >= 0 && v <= TIMER_MAX) return v;
+  } catch {
+    // localStorage를 못 쓰면 기본값 사용
+  }
+  return 3;   // 처음 쓸 때의 기본값
+}
+
+function setTimerSeconds(sec) {
+  timerSeconds = Math.min(TIMER_MAX, Math.max(0, sec));
+  try {
+    localStorage.setItem(TIMER_KEY, String(timerSeconds));
+  } catch {
+    // 저장 실패는 무시
+  }
+  renderTimerUI();
+}
+
+function renderTimerUI() {
+  const text = timerSeconds === 0 ? "끔" : `${timerSeconds}초`;
+  document.getElementById("timer-label").textContent = text;
+  document.getElementById("timer-value").textContent = text;
+  document.querySelectorAll("#timer-chips .chip").forEach((chip) => {
+    chip.classList.toggle("selected", Number(chip.dataset.sec) === timerSeconds);
+  });
+  document.getElementById("timer-minus").disabled = timerSeconds <= 0;
+  document.getElementById("timer-plus").disabled = timerSeconds >= TIMER_MAX;
+}
+
+function setTimerPanel(open) {
+  timerPanel.classList.toggle("hidden", !open);
+  timerBtn.setAttribute("aria-expanded", String(open));
+}
+
+timerBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  setTimerPanel(timerPanel.classList.contains("hidden"));
+});
+timerPanel.addEventListener("click", (e) => e.stopPropagation());
+document.addEventListener("click", () => setTimerPanel(false));
+document.querySelectorAll("#timer-chips .chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    setTimerSeconds(Number(chip.dataset.sec));
+    setTimerPanel(false);
+  });
+});
+document.getElementById("timer-minus").addEventListener("click", () => setTimerSeconds(timerSeconds - 1));
+document.getElementById("timer-plus").addEventListener("click", () => setTimerSeconds(timerSeconds + 1));
+renderTimerUI();
+
+function showCountdownNumber(n) {
+  countdownEl.classList.remove("hidden");
+  countdownEl.innerHTML = `<span>${n}</span>`;   // 매번 새로 만들어서 숫자마다 애니메이션이 다시 재생됩니다
+}
+
+function cancelCountdown() {
+  if (countdownId === null) return;
+  clearInterval(countdownId);
+  countdownId = null;
+  countdownEl.classList.add("hidden");
+  countdownEl.innerHTML = "";
+  shutterBtn.classList.remove("counting");
+  shutterBtn.setAttribute("aria-label", "촬영하기");
+  timerBtn.disabled = false;
+}
+
+shutterBtn.addEventListener("click", () => {
+  if (countdownId !== null) {   // 카운트다운 중에 셔터를 다시 누르면 취소
+    cancelCountdown();
+    return;
+  }
+  if (timerSeconds <= 0) {
+    takePhoto();
+    return;
+  }
+  setTimerPanel(false);
+  let remain = timerSeconds;
+  showCountdownNumber(remain);
+  shutterBtn.classList.add("counting");
+  shutterBtn.setAttribute("aria-label", "촬영 취소");
+  timerBtn.disabled = true;
+  countdownId = setInterval(() => {
+    remain -= 1;
+    if (remain <= 0) {
+      cancelCountdown();
+      takePhoto();
+    } else {
+      showCountdownNumber(remain);
+    }
+  }, 1000);
+});
+
+// ---------------------------------------------------------------
 // 3) 촬영 → 바로 완료 화면 (결제 기능 없는 버전)
 // ---------------------------------------------------------------
-let currentSessionId = "no-payment";
-
-document.getElementById("btn-shutter").addEventListener("click", () => {
+function takePhoto() {
   frozenFrame = canvas.toDataURL("image/png");
-  cancelAnimationFrame(rafId);
   stopCamera();
 
   document.getElementById("result-photo").src = frozenFrame;
   showScreen("done");
-});
+}
 
 function getNextPhotoFilename() {
   // 날짜가 바뀌면 순번이 1부터 다시 시작됩니다 (예: 20260916_1, 20260916_2, ...)
@@ -205,6 +334,12 @@ document.getElementById("btn-download").addEventListener("click", () => {
   a.href = frozenFrame;
   a.download = `${getNextPhotoFilename()}.png`;
   a.click();
+});
+
+document.getElementById("btn-retake").addEventListener("click", async () => {
+  // 같은 배경으로 카메라를 다시 켭니다.
+  if (!selectedBg) return;
+  await openCapture();
 });
 
 document.getElementById("btn-restart").addEventListener("click", () => {

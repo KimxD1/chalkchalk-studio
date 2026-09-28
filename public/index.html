@@ -2,47 +2,75 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#FFF7E8" />
 <title>찰칵찰칵 사진관</title>
 <link rel="stylesheet" href="main.css" />
 </head>
-<body>
-  <div class="brand">찰칵찰칵 사진관</div>
+<body data-screen="start">
+  <header class="site-header">
+    <span class="brand">찰칵찰칵 사진관</span>
+  </header>
 
-  <!-- 1. 시작 화면 -->
-  <section id="screen-start" class="stage">
-    <h1 class="headline">오늘은 어떤 이야기 속으로<br/>떠나볼까요?</h1>
-    <p class="subline">동화책 같은 배경을 고르고, 그 속에서 사진을 찍어드려요.</p>
-    <button class="btn btn-primary" id="btn-start">촬영 시작하기</button>
-  </section>
+  <main class="app">
+    <!-- 1. 시작 화면 -->
+    <section id="screen-start" class="stage" aria-labelledby="start-title">
+      <h1 class="headline" id="start-title">오늘은 어떤 이야기 속으로<br/>떠나볼까요?</h1>
+      <p class="subline">동화책 같은 배경을 고르고, 그 속에서 사진을 찍어드려요.</p>
+      <button class="btn btn-primary" id="btn-start">촬영 시작하기</button>
+    </section>
 
-  <!-- 2. 배경 프리셋 선택 -->
-  <section id="screen-background" class="stage hidden">
-    <button class="btn-back" id="btn-back-to-start">← 처음으로</button>
-    <h2 class="headline" style="font-size:26px;">어떤 배경으로 찍을까요?</h2>
-    <div class="preset-grid" id="preset-grid"></div>
-    <button class="btn btn-primary" id="btn-confirm-bg" disabled>이 배경으로 촬영하기</button>
-  </section>
+    <!-- 2. 배경 프리셋 선택 -->
+    <section id="screen-background" class="stage hidden" aria-labelledby="bg-title">
+      <button class="btn-back" id="btn-back-to-start">← 처음으로</button>
+      <h2 class="headline headline--sm" id="bg-title">어떤 배경으로 찍을까요?</h2>
+      <div class="preset-grid" id="preset-grid"></div>
+      <button class="btn btn-primary" id="btn-confirm-bg" disabled>이 배경으로 촬영하기</button>
+    </section>
 
-  <!-- 3. 실시간 합성 촬영 -->
-  <section id="screen-capture" class="stage hidden">
-    <button class="btn-back" id="btn-change-bg">← 배경 다시 고르기</button>
-    <div class="camera-wrap">
-      <video id="webcam" autoplay playsinline muted></video>
-      <canvas id="composite"></canvas>
-    </div>
-    <div class="shutter" id="btn-shutter" title="촬영하기"></div>
-  </section>
+    <!-- 3. 실시간 합성 촬영 -->
+    <section id="screen-capture" class="stage hidden" aria-label="촬영">
+      <button class="btn-back" id="btn-change-bg">← 배경 다시 고르기</button>
+      <div class="capture-layout">
+        <div class="camera-wrap">
+          <video id="webcam" autoplay playsinline muted></video>
+          <canvas id="composite"></canvas>
+          <div class="countdown hidden" id="countdown" aria-live="assertive"></div>
+        </div>
 
-  <!-- 4. 완료 -->
-  <section id="screen-done" class="stage hidden">
-    <h2 class="headline" style="font-size:24px;">사진이 완성됐어요! 🎉</h2>
-    <img id="result-photo" class="result-photo" alt="완성된 사진" />
-    <div style="display:flex; gap:12px;">
-      <button class="btn btn-primary" id="btn-download">사진 저장하기</button>
-      <button class="btn btn-ghost" id="btn-restart">처음으로</button>
-    </div>
-  </section>
+        <div class="timer" id="timer">
+          <button class="timer-pill" id="btn-timer" aria-haspopup="true" aria-expanded="false">⏱ <span id="timer-label">3초</span></button>
+          <div class="timer-panel hidden" id="timer-panel" role="dialog" aria-label="타이머 설정">
+            <div class="timer-title">촬영 타이머</div>
+            <div class="timer-chips" id="timer-chips">
+              <button class="chip" data-sec="0">끔</button>
+              <button class="chip" data-sec="3">3초</button>
+              <button class="chip" data-sec="5">5초</button>
+              <button class="chip" data-sec="10">10초</button>
+            </div>
+            <div class="timer-stepper">
+              <button class="step-btn" id="timer-minus" aria-label="1초 줄이기">−</button>
+              <output id="timer-value">3초</output>
+              <button class="step-btn" id="timer-plus" aria-label="1초 늘리기">+</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="shutter" id="btn-shutter" title="촬영하기" aria-label="촬영하기"></button>
+      </div>
+    </section>
+
+    <!-- 4. 완료 -->
+    <section id="screen-done" class="stage hidden" aria-labelledby="done-title">
+      <h2 class="headline headline--sm" id="done-title">사진이 완성됐어요! 🎉</h2>
+      <img id="result-photo" class="result-photo" alt="완성된 사진" />
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-download">사진 저장하기</button>
+        <button class="btn btn-ghost" id="btn-retake">다시 찍기</button>
+        <button class="btn btn-ghost" id="btn-restart">처음으로</button>
+      </div>
+    </section>
+  </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
   <script src="main.js"></script>
