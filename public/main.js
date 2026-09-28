@@ -1,10 +1,14 @@
 /**
- * 찰칵찰칵 사진관 - 메인(PC/전자칠판) 페이지
- * 흐름: 시작 → 배경 프리셋 선택 → 실시간 합성 미리보기+촬영
- *       → 결제 요청(태블릿에 자동 통지) → 완료(저장)
+ * 찰칵찰칵 사진관
+ * 흐름: 시작 → 배경 선택 → 실시간 합성 미리보기 + 촬영(타이머 지원) → 저장 (다시 찍기 가능)
+ *
+ * - 배경 이미지는 아래 PRESETS 배열에서 바꿉니다.
+ * - 저장 파일명: chalkstudio_날짜_순번.png (날짜가 바뀌면 순번은 1부터)
+ * - index.html / main.css / main.js 는 항상 같은 버전끼리 함께 올려야 합니다.
  */
 
-const API_BASE = "";
+window.APP_VERSION = "2026-09-28-r5";   // index.html / main.css 와 버전이 같아야 합니다 (아래 점검 참고)
+
 
 // ---------------------------------------------------------------
 // 배경 프리셋 목록 - 실제 배경 이미지로 바꿀 때는 이 배열만 수정하면 됩니다.
@@ -26,9 +30,10 @@ const screens = {
 };
 
 function showScreen(name) {
-  Object.values(screens).forEach((el) => el.classList.add("hidden"));
+  Object.values(screens).forEach((el) => el && el.classList.add("hidden"));
+  if (!screens[name]) return;   // 화면 요소가 없으면(파일 버전 불일치) 전부 숨겨져 빈 화면이 되는 걸 막습니다
   screens[name].classList.remove("hidden");
-  // CSS가 화면별 테마(예: 결제 화면의 어두운 배경)를 적용할 수 있도록 현재 화면 이름을 알려줍니다.
+  // 현재 화면 이름을 body에 기록해 둡니다 (화면별 스타일/점검용).
   document.body.dataset.screen = name;
   window.scrollTo(0, 0);
   // 촬영 화면을 벗어나면 진행 중이던 카운트다운과 열려 있던 타이머 패널을 정리합니다.
@@ -136,17 +141,12 @@ function renderLoop(gen) {
 
 function onSegmentationResult(results) {
   const w = canvas.width, h = canvas.height;
-  ctx.save();
   ctx.clearRect(0, 0, w, h);
 
-  // 거울처럼 보이도록 좌우 반전 (배경+인물이 함께 뒤집힘)
-  ctx.translate(w, 0);
-  ctx.scale(-1, 1);
-
+  // 1) 배경은 뒤집지 않고 원본 방향 그대로 그립니다.
   drawImageCover(ctx, backgroundImage, w, h);
 
-  ctx.save();
-  ctx.globalCompositeOperation = "source-over";
+  // 2) 웹캠 영상에서 사람만 오려냅니다 (마스크 밖은 투명).
   const maskCanvas = document.createElement("canvas");
   maskCanvas.width = w; maskCanvas.height = h;
   const maskCtx = maskCanvas.getContext("2d");
@@ -154,8 +154,11 @@ function onSegmentationResult(results) {
   maskCtx.globalCompositeOperation = "source-in";
   maskCtx.drawImage(results.image, 0, 0, w, h);
 
+  // 3) 오려낸 사람만 좌우 반전(거울)해서 배경 위에 얹습니다.
+  ctx.save();
+  ctx.translate(w, 0);
+  ctx.scale(-1, 1);
   ctx.drawImage(maskCanvas, 0, 0);
-  ctx.restore();
   ctx.restore();
 }
 
@@ -348,4 +351,30 @@ document.getElementById("btn-restart").addEventListener("click", () => {
   document.getElementById("btn-confirm-bg").disabled = true;
   frozenFrame = null;
   showScreen("start");
+});
+
+// ---------------------------------------------------------------
+// 파일 버전 점검
+// index.html / main.css / main.js 가 서로 다른 버전이면 화면 위에 빨간 안내를 띄웁니다.
+// (GitHub에 일부 파일만 올리거나, 다른 폴더의 같은 이름 파일을 섞었을 때 원인을 바로 알 수 있게)
+// ---------------------------------------------------------------
+window.addEventListener("load", () => {
+  const html = document.querySelector('meta[name="app-version"]')?.content || "옛 버전";
+  const css = getComputedStyle(document.documentElement).getPropertyValue("--app-version").replace(/["'\s]/g, "") || "옛 버전";
+  const js = window.APP_VERSION;
+  const requiredIds = [
+    "screen-start", "screen-background", "screen-capture", "screen-done", "preset-grid",
+    "btn-start", "btn-back-to-start", "btn-confirm-bg", "btn-change-bg", "webcam", "composite",
+    "countdown", "btn-timer", "timer-panel", "timer-chips", "btn-shutter",
+    "result-photo", "btn-download", "btn-retake", "btn-restart",
+  ];
+  const missing = requiredIds.filter((id) => !document.getElementById(id));
+  if (html === js && css === js && missing.length === 0) return;
+
+  const banner = document.createElement("div");
+  banner.className = "version-banner";
+  banner.textContent =
+    `파일 버전이 서로 맞지 않아요 (index.html: ${html} / main.css: ${css} / main.js: ${js}). ` +
+    "세 파일을 같은 폴더의 최신 파일로 모두 덮어써 주세요. 그래도 그대로면 Ctrl+F5로 새로고침하세요.";
+  document.body.insertBefore(banner, document.body.firstChild);
 });
