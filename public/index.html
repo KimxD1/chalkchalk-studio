@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#FFF7E8" />
+<meta name="app-version" content="2026-09-28-r5" />
 <title>찰칵찰칵 사진관</title>
 <link rel="stylesheet" href="main.css" />
 </head>
@@ -74,5 +75,15 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
   <script src="main.js"></script>
+  <script>
+    /* 안전장치: main.js가 옛날 버전이거나 불러오지 못했을 때 화면에 안내를 띄웁니다. */
+    window.addEventListener("load", function () {
+      if (window.APP_VERSION) return;
+      var b = document.createElement("div");
+      b.className = "version-banner";
+      b.textContent = "main.js 파일이 옛날 버전이거나 불러오지 못했어요. index.html, main.css, main.js 세 파일을 같은 버전으로 모두 덮어써 주세요. (Ctrl+F5로 새로고침도 해 보세요)";
+      document.body.insertBefore(b, document.body.firstChild);
+    });
+  </script>
 </body>
 </html>
