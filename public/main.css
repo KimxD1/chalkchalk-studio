@@ -124,12 +124,29 @@ h1, h2 {
   max-height: 42vh;
   max-height: 42dvh;
   filter: drop-shadow(0 18px 30px rgba(43, 33, 24, 0.22));
-  animation: signFloat 4s ease-in-out infinite;
+  display: block;
 }
 
-@keyframes signFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-14px); }
+/* 바깥쪽: 좌우로 느리게 갸우뚱 */
+.start-sign-wiggle {
+  animation: signWiggle 4.2s ease-in-out infinite;
+  transform-origin: 50% 85%;
+}
+@keyframes signWiggle {
+  0%, 100% { transform: rotate(-1.4deg); }
+  50% { transform: rotate(1.4deg); }
+}
+
+/* 안쪽: 심장 박동처럼 두 번 통통 커짐 (위 움직임과 겹쳐서 더 생동감 있게) */
+.start-sign-beat {
+  animation: signBeat 1.8s ease-in-out infinite;
+}
+@keyframes signBeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.045); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.03); }
+  70% { transform: scale(1); }
 }
 
 /* =========================================================
