@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#FFF7E8" />
-<meta name="app-version" content="2026-09-28-r5" />
-<title>찰칵찰칵 사진관</title>
-<link rel="stylesheet" href="main.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#FFF7E8" />
+  <meta name="app-version" content="2026-09-28-r5" />
+  <title>찰칵찰칵 사진관</title>
+  <link rel="stylesheet" href="main.css" />
 </head>
+
 <body data-screen="start">
   <header class="site-header">
     <span class="brand">찰칵찰칵 사진관</span>
@@ -16,7 +18,11 @@
   <main class="app">
     <!-- 1. 시작 화면 -->
     <section id="screen-start" class="stage" aria-label="시작 화면">
-      <img id="start-sign" class="start-sign" src="images/start-sign.png" alt="찰칵찰칵 사진관" />
+      <div class="start-sign-wiggle">
+        <div class="start-sign-beat">
+          <img id="start-sign" class="start-sign" src="images/start-sign.png" alt="찰칵찰칵 사진관" />
+        </div>
+      </div>
       <button class="btn btn-primary" id="btn-start">촬영 시작하기</button>
     </section>
 
@@ -39,7 +45,8 @@
         </div>
 
         <div class="timer" id="timer">
-          <button class="timer-pill" id="btn-timer" aria-haspopup="true" aria-expanded="false">⏱ <span id="timer-label">3초</span></button>
+          <button class="timer-pill" id="btn-timer" aria-haspopup="true" aria-expanded="false">⏱ <span
+              id="timer-label">3초</span></button>
           <div class="timer-panel hidden" id="timer-panel" role="dialog" aria-label="타이머 설정">
             <div class="timer-title">촬영 타이머</div>
             <div class="timer-chips" id="timer-chips">
@@ -85,4 +92,5 @@
     });
   </script>
 </body>
+
 </html>
