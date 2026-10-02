@@ -1,7 +1,7 @@
 {
-  "name": "chalkchalk-studio-no-payment",
+  "name": "chalkchalk-studio",
   "version": "1.0.0",
-  "description": "찰칵찰칵 사진관 - 결제 없는 버전 (배경 선택 + 촬영 + 저장만)",
+  "description": "찰칵찰칵 사진관 - 배경 합성 촬영 + 타이머 + 저장",
   "main": "server.js",
   "engines": {
     "node": ">=20.0.0"

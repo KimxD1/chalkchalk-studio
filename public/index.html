@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#FFF7E8" />
+<meta name="app-version" content="2026-09-28-r5" />
 <title>찰칵찰칵 사진관</title>
 <link rel="stylesheet" href="main.css" />
 </head>
@@ -14,9 +15,8 @@
 
   <main class="app">
     <!-- 1. 시작 화면 -->
-    <section id="screen-start" class="stage" aria-labelledby="start-title">
-      <h1 class="headline" id="start-title">오늘은 어떤 이야기 속으로<br/>떠나볼까요?</h1>
-      <p class="subline">동화책 같은 배경을 고르고, 그 속에서 사진을 찍어드려요.</p>
+    <section id="screen-start" class="stage" aria-label="시작 화면">
+      <img id="start-sign" class="start-sign" src="images/start-sign.png" alt="찰칵찰칵 사진관" />
       <button class="btn btn-primary" id="btn-start">촬영 시작하기</button>
     </section>
 
@@ -74,5 +74,15 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
   <script src="main.js"></script>
+  <script>
+    /* 안전장치: main.js가 옛날 버전이거나 불러오지 못했을 때 화면에 안내를 띄웁니다. */
+    window.addEventListener("load", function () {
+      if (window.APP_VERSION) return;
+      var b = document.createElement("div");
+      b.className = "version-banner";
+      b.textContent = "main.js 파일이 옛날 버전이거나 불러오지 못했어요. index.html, main.css, main.js 세 파일을 같은 버전으로 모두 덮어써 주세요. (Ctrl+F5로 새로고침도 해 보세요)";
+      document.body.insertBefore(b, document.body.firstChild);
+    });
+  </script>
 </body>
 </html>
